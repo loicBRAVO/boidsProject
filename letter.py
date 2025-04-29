@@ -72,48 +72,30 @@ class Letter:
             return [np.array([x * self.size + self.position[0],
                             y * self.size + self.position[1]]) for x, y in all_points]
         if self.char == "Z":
-            segments = []
             width = 0.8
             height = 1.0
-            num_points = 15
+            num_points = 5  # Nombre de points par segment
+            points = []
             
-            # Transformer les coordonnées en points numpy tout de suite
-            def create_segment_points(points):
-                return [np.array([x * self.size + self.position[0],
-                                y * self.size + self.position[1]]) for x, y in points]
-            
-            # Barre supérieure
-            top_points = []
+            # Barre supérieure avec plus de points intermédiaires
             for i in range(num_points):
                 t = i / (num_points - 1)
-                top_points.append([self.lerp(-width/2, width/2, t), -height/2])
-            segments.append(create_segment_points(top_points))
+                points.append([-width/2 + width*t, -height/2])
             
-            # Diagonale
-            diagonal_points = []
+            # Diagonale avec plus de points intermédiaires
             for i in range(num_points):
                 t = i / (num_points - 1)
-                diagonal_points.append([
-                    self.lerp(width/2, -width/2, t),
-                    self.lerp(-height/2, height/2, t)
-                ])
-            segments.append(create_segment_points(diagonal_points))
+                x = width/2 - width*t
+                y = -height/2 + height*t
+                points.append([x, y])
             
-            # Barre inférieure
-            bottom_points = []
+            # Barre inférieure avec plus de points intermédiaires
             for i in range(num_points):
                 t = i / (num_points - 1)
-                bottom_points.append([self.lerp(-width/2, width/2, t), height/2])
-            segments.append(create_segment_points(bottom_points))
+                points.append([-width/2 + width*t, height/2])
             
-            # Stocker les segments transformés
-            self.segments = segments
-            
-            # Retourner tous les points pour l'affichage
-            all_points = []
-            for segment in segments:
-                all_points.extend(segment)
-            return all_points
+            return [np.array([x * self.size + self.position[0],
+                            y * self.size + self.position[1]]) for x, y in points]
         return []
 
     def get_closest_point(self, pos):
@@ -151,9 +133,20 @@ class Letter:
         return min_dist, closest_point
 
     def draw(self, screen):
-        # Dessiner simplement tous les points reliés
         if len(self.points) > 1:
+            # Dessiner d'abord une ligne plus épaisse en noir pour l'effet de contour
             for i in range(len(self.points)-1):
-                pygame.draw.line(screen, (30, 30, 30),
+                pygame.draw.line(screen, (50, 50, 50),
+                               self.points[i].astype(int),
+                               self.points[i+1].astype(int), 3)
+            
+            # Puis une ligne plus fine en blanc par dessus
+            for i in range(len(self.points)-1):
+                pygame.draw.line(screen, (200, 200, 200),
                                self.points[i].astype(int),
                                self.points[i+1].astype(int), 1)
+
+            # Ajouter des points aux intersections pour plus de détail
+            for point in self.points:
+                pygame.draw.circle(screen, (200, 200, 200), 
+                                 point.astype(int), 2)

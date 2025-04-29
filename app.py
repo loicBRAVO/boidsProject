@@ -16,9 +16,9 @@ WHITE = (255, 255, 255)
 
 # Définition des groupes avec moins de boids par groupe
 GROUPS = [
-    {"color": (255, 255, 255), "count": 40},
-    {"color": (255, 255, 255), "count": 40},
-    {"color": (255, 255, 255), "count": 40},
+    {"color": (255, 100, 100), "count": 50},
+    {"color": (100, 255, 100), "count": 50},
+    {"color": (100, 100, 255), "count": 50},
 ]
 
 # Création des boids par groupe
@@ -27,7 +27,12 @@ for group_id, group in enumerate(GROUPS):
     for _ in range(group["count"]):
         boids.append(Boid(WIDTH, HEIGHT, group_id, group["color"]))
 
-current_letter = Letter("Z", WIDTH/2, HEIGHT/2, 100)
+# Création de trois lettres Z avec un décalage plus petit
+letters = [
+    Letter("Z", WIDTH/2 - 10, HEIGHT/2 - 10, 250),  # Z arrière
+    Letter("Z", WIDTH/2, HEIGHT/2, 250),           # Z milieu
+    Letter("Z", WIDTH/2 + 10, HEIGHT/2 + 10, 250),  # Z avant
+]
 
 clock = pygame.time.Clock()
 running = True
@@ -37,13 +42,16 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    # Update
+    # Update - chaque boid choisit une lettre aléatoire
     for boid in boids:
-        boid.update(boids, current_letter)
+        target_letter = letters[np.random.randint(0, len(letters)) if np.random.random() < 0.01 else boid.current_letter_index]
+        boid.update(boids, target_letter)
 
     # Draw
     screen.fill(BLACK)
-    current_letter.draw(screen)
+    # Dessiner les lettres dans l'ordre (arrière vers avant)
+    for letter in letters:
+        letter.draw(screen)
     for boid in boids:
         boid.draw(screen)
 
